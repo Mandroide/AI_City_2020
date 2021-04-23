@@ -1,5 +1,6 @@
 import os
 
+import  cv2
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 
@@ -34,6 +35,15 @@ for video_id in range(1, 101):
     if not os.path.exists(Config.output_path + '/' + str(video_id)):
         os.makedirs(Config.output_path + '/' + str(video_id))
     f = open(Config.output_path + '/' + str(video_id) + '/anomaly_events.txt', 'w')
+
+    #output video of the detected anomaly events
+    video_input = ''.join([Config.dataset_path, '/', str(video_id), '.mp4'])
+    video_input = cv2.VideoCapture(video_input)
+    width = int(video_input.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(video_input.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    video_input.release()
+    video_output_path = ''.join([Config.output_path + '/' + str(video_id) + '/' + 'anomaly_events.avi'])
+    video_output = cv2.VideoWriter(video_output_path, cv2.VideoWriter_fourcc(*'XVID'), Config.fps, (width, height))
 
     #loop all stable intervals
     for scene_id in range(1, len(stableIntervals) + 1):
@@ -71,16 +81,22 @@ for video_id in range(1, 101):
             Image.save(event_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/events' + format(frame_id, '03d') + '.jpg')
             confs[frame_id] = conf
 
+            video_output.write(event_im)
+
     f.close()
+    #release resources
+    video_output.release()
+    cv2.destroyAllWindows()
+
     #output anomaly graph text before, anomaly_graph_after, anomaly_graph before, anomaly_graph after, result metric
     print(confs)
-    f = plt.figure()
-    plt.plot(list(confs.keys()), list(confs.values()), lw=4)
-    plt.xlabel('Frame')
-    plt.xlim(left=0)
-    plt.ylabel('Confidence')
-    plt.ylim(bottom=0)
-    plt.gca().yaxis.set_major_formatter(mtick.PercentFormatter(1))
+    f, ax = plt.subplots()
+    ax.plot(list(confs.keys()), list(confs.values()), lw=4)
+    ax.set_xlabel('Time')
+    ax.set_xlim(left=0)
+    ax.set_ylabel('Confidence')
+    ax.set_ylim(bottom=0)
+    ax.yaxis.set_major_formatter(mtick.PercentFormatter(1))
     f.savefig(Config.output_path + '/' + str(video_id) + '/' + str(video_id) + '_anomaly.pdf', bbox_inches='tight')
     plt.close(f)
     f = open(Config.output_path + '/' + str(video_id) + '/' + str(video_id) + '_anomaly.txt', 'w')
