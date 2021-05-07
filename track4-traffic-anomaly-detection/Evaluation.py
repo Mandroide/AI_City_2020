@@ -26,15 +26,13 @@ class Evaluation:
             for l, r in self.gt[video_id]:
                 preds = pred[video_id]
                 lc = 0
-                max_timestamp = 0.0
                 for timestamp, conf in preds:
-                    if l - 10 < timestamp and timestamp < r + 10:
+                    if l - 10 < timestamp < r + 10:
                         lc = 1
                         all_TP += 1.0
                         mse += (timestamp - l)**2
                         if conf > max_conf:
                             max_conf = conf
-                            max_timestamp = timestamp
                 TP += lc
 
             #cal FP
@@ -42,7 +40,7 @@ class Evaluation:
             for timestamp, conf in range(0, len(preds)):
                 lc = 1.0
                 for l, r in self.gt[video_id]:
-                    if l - 10 < timestamp and timestamp < r + 10:
+                    if l - 10 < timestamp < r + 10:
                         lc = 0.0
                 FP += lc
 
@@ -51,7 +49,7 @@ class Evaluation:
                 preds = pred[video_id]
                 lc = 1.0
                 for timestamp, conf in preds:
-                    if l - 10 < timestamp and timestamp < r + 10:
+                    if l - 10 < timestamp < r + 10:
                         lc = 0.0
                 FN += lc
 

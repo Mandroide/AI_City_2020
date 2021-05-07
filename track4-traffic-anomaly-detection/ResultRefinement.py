@@ -19,8 +19,7 @@ class Interval:
         return False
 
     def overlapInterval(self, l, r):
-        if r >= self.l: return True
-        return False
+        return r >= self.l
 
 def refineResult(output_path):
     #final result
@@ -42,23 +41,23 @@ def refineResult(output_path):
         check = np.zeros(len(intervals))
         for i in range(0, len(intervals)):
             for j in range(0, i):
-                if (intervals[i].overlap(intervals[j])):
+                if intervals[i].overlap(intervals[j]):
                     intervals[i].expand(intervals[j])
                     check[j] = 1
                 else:
                     if intervals[i].scene_id != intervals[j].scene_id:
-                        if (intervals[i].overlapInterval(intervals[j].l, intervals[j].r + Config.threshold_anomaly_merge)):
+                        if intervals[i].overlapInterval(intervals[j].l, intervals[j].r + Config.threshold_anomaly_merge):
                             intervals[i].expand(intervals[j])
                             check[j] = 1
 
         minv = 1000.0
         scorev = 0
         for i in range(0, len(intervals)):
-            if (check[i] == 0):
+            if check[i] == 0:
                 lc = 0
                 for j in range(0, len(stops[str(video_id)])):
                     stop = stops[str(video_id)][j]
-                    if intervals[i].l > stop[0] - 20 and intervals[i].l < stop[1] + 20:
+                    if stop[0] - 20 < intervals[i].l < stop[1] + 20:
                         lc = 1
                         break
                 if lc == 0:
@@ -66,7 +65,7 @@ def refineResult(output_path):
                         minv = max(intervals[i].l - Config.start_offset, 0)
                         scorev = intervals[i].score
 
-        if (minv < 1000):
+        if minv < 1000:
             f.write("%d %.2f %.2f\n" % (video_id, minv, scorev))
 
     f.close()

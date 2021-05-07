@@ -21,12 +21,12 @@ for vid_id in range(1,101):
     for i in range(1, length):
         prev = frame
         frame = reader.get_data(i)
-        if (i % 3600 == 0):
+        if i % 3600 == 0:
             print(i) #print process
 
         ## calculating average image
         average = (1 - alpha)*average + alpha*frame
-        if (i % 30 == 0):
+        if i % 30 == 0:
             second = i // 30
             path = output_path / str(vid_id)
             path.mkdir(parents=True, exist_ok=True)

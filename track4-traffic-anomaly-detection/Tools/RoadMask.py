@@ -1,6 +1,6 @@
 import json
 
-import Config
+from .. import Config
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,7 +18,8 @@ class RoadMask:
         mask = np.load(self.mask_path + '/mask_' + str(video_id) + '_' + str(scene_id) + '.npy')
         return mask
 
-    def refineMask(self, im, mask):
+    @staticmethod
+    def __refineMask(im, mask):
         mask = mask > 0.3
         mask = (mask * 255).astype(int)
         im = cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
@@ -35,13 +36,12 @@ class RoadMask:
         for video_id in range(1, 101):
             stableIntervals = self.stableList[str(video_id)]
             for scene_id in range(1, len(stableIntervals) + 1):
-                l, r = stableIntervals[scene_id - 1]
+                l, _ = stableIntervals[scene_id - 1]
                 l = int(l / Config.fps) + 1
-                r = int(r / Config.fps)
                 mask = self.getMask(video_id, scene_id)
                 print(self.im_path + '/' + str(video_id) + '/average' + str(l) + '.jpg')
                 im = cv2.cvtColor(cv2.imread(self.im_path + '/' + str(video_id) + '/average' + str(l+5) + '.jpg'), cv2.COLOR_BGR2RGB)
-                self.refineMask(im, mask)
+                self.__refineMask(im, mask)
                 break
 
         print(self.stableList)

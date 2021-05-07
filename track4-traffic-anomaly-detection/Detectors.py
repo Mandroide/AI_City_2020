@@ -18,12 +18,13 @@ class DetectorDay:
     def __init__(self, result_file, result_file_nclas):
         self.name = 'day'
         self.result = {}
-        self.initialize(self.result, result_file)
+        self.__initialize(self.result, result_file)
         self.result_nclas = {}
-        self.initialize(self.result_nclas, result_file_nclas)
+        self.__initialize(self.result_nclas, result_file_nclas)
         self.need_nclass = [20]
 
-    def initialize(self, result, result_file):
+    @staticmethod
+    def __initialize(result, result_file):
         f = open(result_file, 'r')
         lines = f.readlines()
         for i in range(0, len(lines)):
@@ -46,7 +47,7 @@ class DetectorDay:
                     result[i][j] = []
 
     def detect(self, video_id, frame_id):
-        if (video_id in self.need_nclass):
+        if video_id in self.need_nclass:
             return self.result_nclas[video_id][frame_id]
         else:
             return self.result[video_id][frame_id]
@@ -75,7 +76,7 @@ class DetectorNight:
         return self.result[video_id][frame_id]
 
     def checkNight(self, video_id):
-        return (self.night_videos[video_id] == 1)
+        return self.night_videos[video_id] == 1
 
 class DayNightDetector:
 
@@ -90,7 +91,7 @@ class DayNightDetector:
             self.night_videos[video_id] = 1
 
     def checkNight(self, video_id):
-        return (self.night_videos[video_id] == 1)
+        return self.night_videos[video_id] == 1
 
     def initialize(self):
         f = open('gt.txt', 'r')
@@ -225,9 +226,9 @@ if __name__ == '__main__':
         im = cv2.cvtColor(cv2.imread(Config.data_path + '/average_image/' + str(video_id) +'/average' + str(frame_id) + '.jpg'), cv2.COLOR_BGR2RGB)
         boxes = detector.detect(video_id, frame_id)
         for j in range(0, len(boxes)):
-            if (boxes[j].score > 0):
+            if boxes[j].score > 0:
                 im = cv2.rectangle(im, (boxes[j].x1, boxes[j].y1), (boxes[j].x2, boxes[j].y2), (0, 255, 0), 3)
-                im = cv2.putText(im, "%.2f" % (boxes[j].score), (boxes[j].x1, boxes[j].y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
+                im = cv2.putText(im, "%.2f" % boxes[j].score, (boxes[j].x1, boxes[j].y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
                 plt.imshow(im)
         plt.show()
     f.close()

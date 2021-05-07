@@ -35,7 +35,7 @@ def expand(mask, region, check):
         u = region[l]
         for i in range(0, 4):
             v = (u[0] + dx[i], u[1] + dy[i])
-            if v[0] >= 0 and v[0] < h and v[1] >= 0 and v[1] < w:
+            if 0 <= v[0] < h and 0 <= v[1] < w:
                 if check[v[0]][v[1]] == 0 and mask[v[0]][v[1]]:
                     check[v[0]][v[1]] = 1
                     region.append(v)
@@ -51,10 +51,9 @@ def region_extract(mask, threshold_s = 2000):
             if check[i][j] == 0 and mask[i][j]:
                 u = (i, j)
                 check[u[0]][u[1]] = 1
-                region = []
-                region.append((u[0], u[1]))
+                region = [(u[0], u[1])]
                 s = expand(mask, region, check)
-                if (s < threshold_s):
+                if s < threshold_s:
                     for u in region: mask[u[0]][u[1]] = 0
 
     return mask
@@ -77,7 +76,6 @@ def extractMask(video_id):
             capture.set(cv2.CAP_PROP_POS_FRAMES, start)
             success, frame = capture.read()
 
-            first_frame = frame
             temp = np.zeros_like(frame)
 
             capture.set(cv2.CAP_PROP_POS_FRAMES, (start + end) // 2)
@@ -91,7 +89,7 @@ def extractMask(video_id):
                 success, frame = capture.read()
                 frame_id += 30
 
-                if (success):
+                if success:
                     sub = sigmoid((np.abs(frame - prev)) - 125)
                     temp = temp + sub
                 else:
@@ -126,7 +124,7 @@ def extractMask(video_id):
             imageio.imwrite('masks/%d_%d.jpg' %(vid, scenes_id), mask.reshape(410,800,1).astype(np.uint8) * mid_frame)
 
 def verifyMask(video_id, scene_id, expand):
-    if expand == False:
+    if not expand:
         mask = np.load('./masks_refine_non_expand/mask_' + str(video_id) + '_' + str(scene_id) + '.npy')
         cv2.imwrite('./mask_ne.png', mask * 255)
         plt.imshow(mask, cmap='gray')

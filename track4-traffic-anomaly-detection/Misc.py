@@ -54,9 +54,9 @@ class Image:
     def addBoxes(im, boxes):
         im = np.array(im)
         for box in boxes:
-            if (box.score > Config.box_threshold):
+            if box.score > Config.box_threshold:
                 im = cv2.rectangle(im, (box.x1, box.y1), (box.x2, box.y2), (0, 255, 0), 2)
-                im = cv2.putText(im, "%.2f" % (box.score), (box.x1, box.y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
+                im = cv2.putText(im, "%.2f" % box.score, (box.x1, box.y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
         return im
 
     @staticmethod
