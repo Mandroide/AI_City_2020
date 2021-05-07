@@ -28,7 +28,7 @@ def refineResult(output_path):
     with open(Config.data_path + '/stop_scene_periods.json', 'r') as f:
         stops = json.load(f)
     f = open(output_path + '/result_all.txt', 'w')
-    for video_id in range(1, 100):
+    for video_id in range(1, 101):
         g = open(output_path + '/' + str(video_id) + '/anomaly_events.txt')
         lines = g.readlines()
         intervals = []
