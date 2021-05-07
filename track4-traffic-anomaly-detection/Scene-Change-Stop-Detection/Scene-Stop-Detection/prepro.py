@@ -35,13 +35,13 @@ for cuts_file in cuts_files:
             duration += 1
             i += 1
             cut = end_cut
-        print basename, start_cut, duration
-        
+        print(basename, start_cut, duration)
+
         if duration > 0:
             dataset_cuts[basename.split('.')[0]].append((start_cut-1, start_cut + duration))
-        i += 1 
-        
-    print basename.split('.')[0], len(cuts), dataset_cuts[basename.split('.')[0]]
+        i += 1
+
+    print(basename.split('.')[0], len(cuts), dataset_cuts[basename.split('.')[0]])
 
 with open(os.path.join(cuts_dir, 'stop_scene_periods.json'), 'w') as f:
     json.dump(dataset_cuts, f)

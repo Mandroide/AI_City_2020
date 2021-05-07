@@ -35,7 +35,7 @@ def LBP(frame):
 
                 frame[i][j]=newvalue
             except:
-                print i, j
+                print(i, j)
     return frame
 
 
@@ -75,7 +75,7 @@ def getCuts(file_name, cap):
 
             if diff[0] <= thresh:
                 cnt+=1
-                print "CUT "+str(cnt)+" Detected at frame "+str(frm_id)
+                print("CUT " + str(cnt) + " Detected at frame " + str(frm_id))
                 cuts.append(frm_id)
 
             prev_lbph = lbph
@@ -83,7 +83,7 @@ def getCuts(file_name, cap):
         except UnboundLocalError:
             pass
 
-    print 'Found %d scene changes.' % cnt
+    print('Found %d scene changes.' % cnt)
     cuts_file = os.path.join(os.path.dirname(file_name), 'stop_cuts', os.path.basename(file_name) + '.json')
     with open(cuts_file, 'w') as f:
         json.dump(cuts, f)
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     videos = args.vi_or_dir
 
     if len(videos) > 1:
-        print [os.path.isdir(video) for video in videos]
+        print([os.path.isdir(video) for video in videos])
         assert all([os.path.isfile(video) for video in videos]), 'Multiple inputs option is only for inputing videos.'
     assert all([os.path.dirname(video) == os.path.dirname(videos[0]) for video in videos]), 'All videos should be placed in the same directory.'
 
