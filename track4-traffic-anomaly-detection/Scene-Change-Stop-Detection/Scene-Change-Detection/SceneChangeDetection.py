@@ -5,36 +5,8 @@ import os
 import sys
 
 import cv2
-
-def LBP(frame):
-    for i in range(len(frame)):
-        for j in range(len(frame[0])):
-            if i==0 or j==0 or i==len(frame)-1 or j==len(frame[0])-1:
-                continue
-            try: 
-                gc=frame[i][j]
-                newvalue=0
-                if frame[i-1][j-1]>=gc:
-                    newvalue+=1
-                if frame[i-1][j]>=gc:
-                    newvalue+=2
-                if frame[i-1][j+1]>=gc:
-                    newvalue+=4
-                if frame[i][j+1]>=gc:
-                    newvalue+=8
-                if frame[i+1][j+1]>=gc:
-                    newvalue+=16
-                if frame[i+1][j]>=gc:
-                    newvalue+=32
-                if frame[i+1][j-1]>=gc:
-                    newvalue+=64
-                if frame[i][j-1]>=gc:
-                    newvalue+=128
-
-                frame[i][j]=newvalue
-            except:
-                print(i, j)
-    return frame
+from tqdm import tqdm
+from ..vid_utils import LBP
 
 
 def getCuts(file_name, cap):
@@ -57,7 +29,7 @@ def getCuts(file_name, cap):
     background_frame = cv2.cvtColor(background_frame, cv2.COLOR_YUV2BGR)
     mean_frame = background_frame.copy()
 
-    for frm_id in range(begin_id+1, int(cap.get(cv2.CAP_PROP_FRAME_COUNT))):
+    for frm_id in tqdm(range(begin_id+1, int(cap.get(cv2.CAP_PROP_FRAME_COUNT)))):
         _, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
         frame[:, :, 0] = cv2.equalizeHist(frame[:, :, 0])
