@@ -6,10 +6,12 @@ import sys
 
 import cv2
 from tqdm import tqdm
+from pathlib import Path
+from ... import Config
 from ..vid_utils import LBP
 
 
-def getCuts(file_name, cap):
+def getCuts(file_name: Path, cap: cv2.VideoCapture) -> None:
     begin_id = 0
     thresh = 2000
 
@@ -66,7 +68,7 @@ if __name__ == '__main__':
     parser.add_argument('vi_or_dir',
                         help='Videos or directory containing videos to be processed.',
                         nargs='+',
-                        type=str)
+                        type=str, default=Config.dataset_path)
 
     if len(sys.argv) == 1:
         parser.print_help()
@@ -76,18 +78,16 @@ if __name__ == '__main__':
 
     if len(videos) > 1:
         print([os.path.isdir(video) for video in videos])
-        assert all([os.path.isfile(video) for video in videos]), 'Multiple inputs option is only for inputing videos.'
+        assert all([os.path.isfile(video) for video in videos]), 'Multiple inputs option is only for inputting videos.'
     assert all([os.path.dirname(video) == os.path.dirname(videos[0]) for video in videos]), 'All videos should be placed in the same directory.'
 
     if len(videos) == 1 and os.path.isdir(videos[0]):
-        videos = glob.glob(os.path.join(videos[0], '*.mp4'))
+        videos = Path(videos[0]).glob('*.mp4')
 
-    cuts_dir = os.path.join(os.path.dirname(videos[0]), 'stop_cuts')
-    if not os.path.isdir(cuts_dir):
-        os.mkdir(cuts_dir)
-
+    stop_cuts_dir = Path(Config.stop_cuts_dir)
+    stop_cuts_dir.mkdir(parents=True, exist_ok=True)
 
     for video_name in videos:
-        cap = cv2.VideoCapture(video_name)
-        print('Processing file name: %s' % video_name)
+        cap = cv2.VideoCapture(str(video_name))
+        print('Processing file name: %s' % str(video_name))
         getCuts(video_name, cap)

@@ -3,11 +3,10 @@ import json
 import os
 
 import cv2
-
-cuts_dir = '../aic19-track3-test-data/stop_cuts'
+from ... import Config
 
 dataset_cuts = {}
-cuts_files = sorted(list(glob.glob(os.path.join(cuts_dir, '*.mp4.json'))), key=lambda x: int(os.path.basename(x).split('.')[0]))
+cuts_files = sorted(list(glob.glob(os.path.join(Config.stop_cuts_dir, '*.mp4.json'))), key=lambda x: int(os.path.basename(x).split('.')[0]))
 for cuts_file in cuts_files:
     with open(cuts_file, 'r') as f:
         cuts = json.load(f)
@@ -43,5 +42,5 @@ for cuts_file in cuts_files:
 
     print(basename.split('.')[0], len(cuts), dataset_cuts[basename.split('.')[0]])
 
-with open(os.path.join(cuts_dir, 'stop_scene_periods.json'), 'w') as f:
+with open(os.path.join(Config.stop_cuts_dir, 'stop_scene_periods.json'), 'w') as f:
     json.dump(dataset_cuts, f)
