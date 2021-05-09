@@ -1,6 +1,8 @@
 dataset_path = '~/Datasets/AI city challenge/AIC20_track4/test-data'
 data_path = '~/AI_City_2020/track4-traffic-anomaly-detection/preprocessed_data'
 output_path = data_path + '/output_demo'
+cuts_dir = data_path + '/cuts'
+stop_cuts_dir = data_path + '/stop_cuts'
 
 fps = 30
 box_threshold = 0.5
