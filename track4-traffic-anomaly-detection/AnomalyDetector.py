@@ -41,8 +41,7 @@ class AnomalyEvent:
         dist = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
         radius = ((((pivot.x2 - pivot.x1) ** 2 + (pivot.y2 - pivot.y1) ** 2) ** 0.5) / 2 \
                 + (((box.x2 - box.x1) ** 2 + (box.y2 - box.y1) ** 2) ** 0.5) / 2) * (4 / 5)
-        if dist <= radius: return True, dist
-        return False, dist
+        return (dist <= radius), dist
 
     def checkContains(self, box):
         #method 4
