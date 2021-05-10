@@ -15,8 +15,7 @@ class Interval:
         self.r = max(self.r, interval.r)
 
     def overlap(self, interval):
-        if interval.r >= self.l: return True
-        return False
+        return interval.r >= self.l
 
     def overlapInterval(self, l, r):
         return r >= self.l
