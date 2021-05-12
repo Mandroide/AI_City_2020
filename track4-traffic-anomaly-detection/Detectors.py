@@ -9,6 +9,8 @@ import numpy as np
 
 import Config
 from Misc import BoundingBox, Image
+from pathlib import Path
+from vid_utils import natural_keys
 
 #input detected bounding boxes (text file)
 #get result by function detect
@@ -41,7 +43,7 @@ class DetectorDay:
                 result[video_id][frame_id].append(box)
 
         for i in result.keys():
-            ave_imgs = os.listdir(Config.data_path + '/average_image/' + str(i))
+            ave_imgs = os.listdir(Config.avg_im_path + '/' + str(i))
             for j in range(1, len(ave_imgs) + 1):
                 if j not in result[i].keys():
                     result[i][j] = []
@@ -82,7 +84,7 @@ class DayNightDetector:
 
     def __init__(self):
         self.night_videos = np.zeros(101, np.int)
-        self.video_path = Config.data_path + '/average_image'
+        self.video_path = Config.avg_im_path
         self.temp_initialize()
 
     def temp_initialize(self):
@@ -96,9 +98,10 @@ class DayNightDetector:
     def initialize(self):
         f = open('gt.txt', 'r')
         cc = []
-        for video_id in range(1, 101):
-            print(video_id)
-            image = cv2.cvtColor(Image.load(self.video_path + '/' + str(video_id) + '/average10.jpg'), cv2.COLOR_BGR2RGB)
+        average_dirs = sorted([x for x in Path(self.video_path).iterdir() if x.is_dir()], key=natural_keys)
+        for average_dir in average_dirs:
+            print(average_dir.name)
+            image = cv2.cvtColor(Image.load(str(average_dir/'average10.jpg')), cv2.COLOR_BGR2RGB)
             image = image[: int(image.shape[0] / 2), :]
             w = image.shape[1] // 5
             h = image.shape[0] // 5
@@ -203,7 +206,7 @@ class JapDetector:
                 self.result[video_id][frame_id].append(rbox)
 
         for i in self.result.keys():
-            ave_imgs = os.listdir(Config.data_path + '/average_image/' + str(i))
+            ave_imgs = os.listdir(Config.avg_im_path + '/' + str(i))
             for j in range(1, len(ave_imgs) + 1):
                 if j not in self.result[i].keys():
                     self.result[i][j] = []
@@ -221,9 +224,9 @@ if __name__ == '__main__':
         im_name = lines.split(' ')[0]
         video_id = int(im_name.split('/')[0])
         frame_id = int(im_name.split('/')[1][7:-4])
-        img_paths = os.listdir(Config.data_path + '/average_image/' + str(video_id))
+        img_paths = os.listdir(Config.avg_im_path + '/' + str(video_id))
         print(video_id, frame_id)
-        im = cv2.cvtColor(cv2.imread(Config.data_path + '/average_image/' + str(video_id) +'/average' + str(frame_id) + '.jpg'), cv2.COLOR_BGR2RGB)
+        im = cv2.cvtColor(cv2.imread(Config.avg_im_path + '/' + str(video_id) +'/average' + str(frame_id) + '.jpg'), cv2.COLOR_BGR2RGB)
         boxes = detector.detect(video_id, frame_id)
         for j in range(0, len(boxes)):
             if boxes[j].score > 0:

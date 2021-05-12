@@ -1,5 +1,6 @@
 import json
 
+from typing import Dict, List
 from .. import Config
 import cv2
 import matplotlib.pyplot as plt
@@ -11,7 +12,7 @@ class RoadMask:
         self.scene_path = scene_path
         self.im_path = im_path
         with open(scene_path, 'r') as f:
-            self.stableList = json.load(f)
+            self.stableList: Dict[str, List[List[int]]] = json.load(f)
         self.refineMasks()
 
     def getMask(self, video_id, scene_id):
@@ -33,8 +34,7 @@ class RoadMask:
 
 
     def refineMasks(self):
-        for video_id in range(1, 101):
-            stableIntervals = self.stableList[str(video_id)]
+        for video_id, stableIntervals in self.stableList.items():
             for scene_id in range(1, len(stableIntervals) + 1):
                 l, _ = stableIntervals[scene_id - 1]
                 l = int(l / Config.fps) + 1
@@ -47,4 +47,4 @@ class RoadMask:
         print(self.stableList)
 
 if __name__ == '__main__':
-    list = RoadMask(Config.data_path + '/masks', Config.data_path + '/unchanged_scene_periods.json', Config.data_path + '/average_image')
+    list = RoadMask(Config.data_path + '/masks', Config.data_path + '/unchanged_scene_periods.json', Config.avg_im_path)
