@@ -1,32 +1,34 @@
-import glob
 import json
 import os
 
 import cv2
 from ... import Config
+from ...vid_utils import natural_keys
+from pathlib import Path
 
 dataset_cuts = {}
-cuts_files = sorted(list(glob.glob(os.path.join(Config.cuts_dir, '*.mp4.json'))), key=lambda x: int(os.path.basename(x).split('.')[0]))
+dirname = Path(Config.cuts_dir)
+cuts_files = sorted(list(dirname.glob('*.json')), key=natural_keys)
 for cuts_file in cuts_files:
     with open(cuts_file, 'r') as f:
         cuts = json.load(f)
-    dirname = os.path.dirname(cuts_file)
-    basename = os.path.basename(cuts_file)
+    basename = ''.join(cuts_file.name.split('.')[:-1])
 
-    vid = cv2.VideoCapture(os.path.join(dirname[:-4], basename[:-5]))
+    filename = Path(Config.dataset_path).with_name(basename)
+    vid = cv2.VideoCapture(filename)
     num_frms = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
     vid.release()
 
     cur_frm = 0
 
-    dataset_cuts[basename.split('.')[0]] = []
-    for cut in cuts:
+    dataset_cuts[basename] = []
+    for cut in cuts.values():
         if cur_frm < cut - 5*30:
-            dataset_cuts[basename.split('.')[0]].append((cur_frm, cut - 30))
+            dataset_cuts[basename].append((cur_frm, cut - 30))
         cur_frm = cut + 30
     if cur_frm < num_frms - 5*30:
-        dataset_cuts[basename.split('.')[0]].append((cur_frm, num_frms))
-    print(basename.split('.')[0], len(cuts), dataset_cuts[basename.split('.')[0]])
+        dataset_cuts[basename].append((cur_frm, num_frms))
+    print(basename, len(cuts), dataset_cuts[basename])
 
-with open(os.path.join(Config.cuts_dir, 'unchanged_scene_periods.json'), 'w') as f:
+with open(os.path.join(Config.data_path, 'unchanged_scene_periods.json'), 'w') as f:
     json.dump(dataset_cuts, f)

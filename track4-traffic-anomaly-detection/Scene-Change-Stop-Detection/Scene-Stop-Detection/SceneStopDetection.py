@@ -1,5 +1,4 @@
 import argparse
-import glob
 import json
 import os
 import sys
@@ -8,7 +7,7 @@ import cv2
 from tqdm import tqdm
 from pathlib import Path
 from ... import Config
-from ..vid_utils import LBP
+from ...vid_utils import LBP
 
 
 def getCuts(file_name: Path, cap: cv2.VideoCapture) -> None:
@@ -56,7 +55,7 @@ def getCuts(file_name: Path, cap: cv2.VideoCapture) -> None:
             pass
 
     print('Found %d scene changes.' % cnt)
-    cuts_file = os.path.join(os.path.dirname(file_name), 'stop_cuts', os.path.basename(file_name) + '.json')
+    cuts_file = Config.stop_cuts_dir/file_name.with_suffix('.json')
     with open(cuts_file, 'w') as f:
         json.dump(cuts, f)
 

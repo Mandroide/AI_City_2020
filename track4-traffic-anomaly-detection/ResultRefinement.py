@@ -1,6 +1,8 @@
 import json
 import numpy as np
 import Config
+from pathlib import Path
+from vid_utils import natural_keys
 
 class Interval:
 
@@ -26,8 +28,9 @@ def refineResult(output_path):
     with open(Config.data_path + '/stop_scene_periods.json', 'r') as f:
         stops = json.load(f)
     f = open(output_path + '/result_all.txt', 'w')
-    for video_id in range(1, 101):
-        g = open(output_path + '/' + str(video_id) + '/anomaly_events.txt')
+    output_dirs = sorted([x for x in Path(output_path).iterdir() if x.is_dir()], key=natural_keys)
+    for output_dir in output_dirs:
+        g = open(output_dir/'anomaly_events.txt')
         lines = g.readlines()
         intervals = []
 
@@ -54,8 +57,8 @@ def refineResult(output_path):
         for i in range(0, len(intervals)):
             if check[i] == 0:
                 lc = 0
-                for j in range(0, len(stops[str(video_id)])):
-                    stop = stops[str(video_id)][j]
+                for j in range(0, len(stops[output_dir.name])):
+                    stop = stops[output_dir.name][j]
                     if stop[0] - 20 < intervals[i].l < stop[1] + 20:
                         lc = 1
                         break
@@ -65,7 +68,7 @@ def refineResult(output_path):
                         scorev = intervals[i].score
 
         if minv < 1000:
-            f.write("%d %.2f %.2f\n" % (video_id, minv, scorev))
+            f.write(output_dir.name + " %.2f %.2f\n" % (minv, scorev))
 
     f.close()
 

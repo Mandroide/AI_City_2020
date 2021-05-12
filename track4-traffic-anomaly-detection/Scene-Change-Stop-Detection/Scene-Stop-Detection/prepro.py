@@ -1,25 +1,27 @@
-import glob
 import json
 import os
 
 import cv2
 from ... import Config
+from ...vid_utils import natural_keys
+from pathlib import Path
 
 dataset_cuts = {}
-cuts_files = sorted(list(glob.glob(os.path.join(Config.stop_cuts_dir, '*.mp4.json'))), key=lambda x: int(os.path.basename(x).split('.')[0]))
+dirname = Path(Config.stop_cuts_dir)
+cuts_files = sorted(list(dirname.glob('*.json')), key=natural_keys)
 for cuts_file in cuts_files:
     with open(cuts_file, 'r') as f:
         cuts = json.load(f)
-    dirname = os.path.dirname(cuts_file)
-    basename = os.path.basename(cuts_file)
+    basename = ''.join(cuts_file.name.split('.')[:-1])
 
-    vid = cv2.VideoCapture(os.path.join(dirname[:-4], basename[:-5]))
+    filename = Path(Config.dataset_path).with_name(basename)
+    vid = cv2.VideoCapture(filename)
     num_frms = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
     vid.release()
 
     cur_frm = 0
 
-    dataset_cuts[basename.split('.')[0]] = []
+    dataset_cuts[basename] = []
 
     i = 0
     while i < len(cuts):
@@ -37,10 +39,10 @@ for cuts_file in cuts_files:
         print(basename, start_cut, duration)
 
         if duration > 0:
-            dataset_cuts[basename.split('.')[0]].append((start_cut-1, start_cut + duration))
+            dataset_cuts[basename].append((start_cut-1, start_cut + duration))
         i += 1
 
-    print(basename.split('.')[0], len(cuts), dataset_cuts[basename.split('.')[0]])
+    print(basename, len(cuts), dataset_cuts[basename])
 
-with open(os.path.join(Config.stop_cuts_dir, 'stop_scene_periods.json'), 'w') as f:
+with open(os.path.join(Config.data_path, 'stop_scene_periods.json'), 'w') as f:
     json.dump(dataset_cuts, f)

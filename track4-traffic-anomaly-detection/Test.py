@@ -20,6 +20,7 @@ anomalyDetector = AnomalyDetector()
 stableList = StableFrameList(Config.data_path + '/unchanged_scene_periods.json')
 maskList = MaskList(Config.data_path + '/masks_refine_v3')
 
+# TODO: change for a generic version of videos.
 for video_id in range(1, 101):
     print("Processing video ", video_id)
     detector = detectorDay
@@ -60,7 +61,7 @@ for video_id in range(1, 101):
         # output: average + boxes, gray_boxes before, gray_boxes after mask
 
         for frame_id in range(sl, sr):
-            ave_im = Image.load(Config.data_path + '/average_image/' + str(video_id) + '/average' + str(frame_id) + '.jpg')
+            ave_im = Image.load(Config.avg_im_path + '/' + str(video_id) + '/average' + str(frame_id) + '.jpg')
             boxes = detector.detect(video_id, frame_id)
             for box in boxes: box.applyMask(sceneMask)
 

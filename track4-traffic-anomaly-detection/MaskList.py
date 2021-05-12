@@ -19,7 +19,7 @@ if __name__ == '__main__':
     scene_id = 1
     frame_id = 144
     mask = list[(video_id, 1)]
-    im = cv2.cvtColor(Image.load(Config.data_path + '/average_image/' + str(video_id) + '/average' + str(frame_id) +'.jpg' ), cv2.COLOR_BGR2RGB)
+    im = cv2.cvtColor(Image.load(Config.avg_im_path + '/' + str(video_id) + '/average' + str(frame_id) +'.jpg' ), cv2.COLOR_BGR2RGB)
     mask = np.dstack((mask, mask, mask))
     im = im * mask
     save_path = './51_mask_image.png'
