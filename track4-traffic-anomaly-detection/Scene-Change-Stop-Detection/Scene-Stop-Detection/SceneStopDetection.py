@@ -6,8 +6,10 @@ import sys
 import cv2
 from tqdm import tqdm
 from pathlib import Path
-from ... import Config
-from ...vid_utils import LBP
+dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(dir + '/../..')
+import Config
+from vid_utils import LBP
 
 
 def getCuts(file_name: Path, cap: cv2.VideoCapture) -> None:

@@ -7,12 +7,16 @@ Created on Tue Jan 22 11:21:20 2019
 """
 
 import json
+import sys
+import os
 
 import cv2
 import imageio
 import matplotlib.pyplot as plt
 import numpy as np
-from .. import Config
+dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(dir + '/..')
+import Config
 
 def sigmoid(x):
     return (1 / (1 + np.exp(-x))).astype(np.float32)
