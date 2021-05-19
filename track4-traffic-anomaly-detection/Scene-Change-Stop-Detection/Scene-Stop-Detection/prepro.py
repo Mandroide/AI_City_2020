@@ -1,10 +1,13 @@
 import json
 import os
+import sys
+from pathlib import Path
 
 import cv2
-from ... import Config
-from ...vid_utils import natural_keys
-from pathlib import Path
+dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(dir + '/../..')
+import Config
+from vid_utils import natural_keys
 
 dataset_cuts = {}
 dirname = Path(Config.stop_cuts_dir)

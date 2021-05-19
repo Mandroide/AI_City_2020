@@ -1,10 +1,14 @@
 import json
+import sys
+import os
 
 from typing import Dict, List
-from .. import Config
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(dir + '/..')
+import Config
 
 class RoadMask:
     def __init__(self, mask_path, scene_path, im_path):

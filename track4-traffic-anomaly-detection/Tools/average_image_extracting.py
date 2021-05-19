@@ -1,7 +1,11 @@
+import sys
+import os
 from pathlib import Path
-from .. import Config
 import imageio
 import numpy as np
+dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(dir + '/..')
+import Config
 
 alpha = 0.01
 

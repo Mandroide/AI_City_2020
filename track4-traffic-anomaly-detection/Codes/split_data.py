@@ -1,8 +1,11 @@
 import os
+import sys
 
 import cv2
 import numpy as np
-from .. import Config
+dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(dir + '/..')
+import Config
 
 def sigmoid(x):
     return (1 / (1 + np.exp(-x))).astype(np.float32)
