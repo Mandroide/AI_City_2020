@@ -3,8 +3,8 @@ import os.path
 
 dataset_path = '~/Datasets/AI city challenge/AIC20_track4/test-data'
 data_path = os.path.dirname(os.path.abspath(__file__)) + '/preprocessed_data'
-avg_im_path = data_path + '/average_image'
 output_path = data_path + '/output_demo'
+avg_im_path = data_path + '/average_image'
 cuts_dir = data_path + '/cuts'
 stop_cuts_dir = data_path + '/stop_cuts'
 
