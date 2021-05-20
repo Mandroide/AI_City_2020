@@ -2,11 +2,12 @@ import argparse
 import subprocess
 import time
 from pathlib import Path
+import Config
 
 def parse_cmd_args():
     parser = argparse.ArgumentParser(description='extract frames from video')
     parser.add_argument('-p', '--path', type=str, 
-                        default=r"F:\Datasets\AIC20_track4\test-data",
+                        default=Config.dataset_path,
                         help='input folder path')
     parser.add_argument('-f', '--file', type=str,
                         default="trace_input.txt",
