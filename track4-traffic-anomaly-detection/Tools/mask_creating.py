@@ -14,12 +14,11 @@ import cv2
 import imageio
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.special as sc
 dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(dir + '/..')
 import Config
 
-def sigmoid(x):
-    return (1 / (1 + np.exp(-x))).astype(np.float32)
 
 def find_first_pos(mask):
     for i in range(mask.shape[0]):
@@ -94,7 +93,7 @@ def extractMask(video_id):
                 frame_id += 30
 
                 if success:
-                    sub = sigmoid((np.abs(frame - prev)) - 125)
+                    sub = sc.expit(np.abs(frame - prev) - 125)
                     temp = temp + sub
                 else:
                     break
