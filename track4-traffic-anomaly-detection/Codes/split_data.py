@@ -3,18 +3,17 @@ import sys
 
 import cv2
 import numpy as np
+import scipy.special as sc
 dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(dir + '/..')
 import Config
 
-def sigmoid(x):
-    return (1 / (1 + np.exp(-x))).astype(np.float32)
 
 def diff(frame1, frame2):
     prev = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
     gray = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
     sub = np.abs(gray.astype(np.float32) - prev.astype(np.float32))
-    sub = sigmoid(sub - 40)
+    sub = sc.expit(sub - 40)
     diff = int(np.sum(sub))
     return (diff > 10)
 
