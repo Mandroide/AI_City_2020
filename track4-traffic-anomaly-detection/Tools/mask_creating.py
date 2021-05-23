@@ -150,7 +150,7 @@ def expandMask(video_id, scene_id):
     np.save(mask_path, mask)
 
 
-if __name__== '__main__':
+if __name__ == '__main__':
 
     # Extract the mask
     # [6,11,12,17,20,22,24,26,27,28,32,34,35,44,50,51,55,59,64,66,71,77,79,82,85,90,96,97]:
@@ -158,7 +158,5 @@ if __name__== '__main__':
     videos = sorted(list(videos), key=natural_keys)
     for vid in videos:
         extractMask(vid)
-        # Optional
-        # Expand the mask
         #visualize extracted masks
-        verifyMask(video_id=51, scene_id=1, expand=True)
+        verifyMask(video_id=vid.stem, scene_id=1, expand=True)
