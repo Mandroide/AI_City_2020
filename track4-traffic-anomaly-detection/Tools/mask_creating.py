@@ -9,6 +9,7 @@ Created on Tue Jan 22 11:21:20 2019
 import json
 import sys
 import os
+from pathlib import Path
 
 import cv2
 import imageio
@@ -18,6 +19,7 @@ import scipy.special as sc
 dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(dir + '/..')
 import Config
+from vid_utils import natural_keys
 
 
 def find_first_pos(mask):
@@ -34,7 +36,7 @@ def expand(mask, region, check):
     l = 0
     h, w = mask.shape
     ret = 1
-    while  l < len(region):
+    while l < len(region):
         u = region[l]
         for i in range(0, 4):
             v = (u[0] + dx[i], u[1] + dy[i])
@@ -61,70 +63,67 @@ def region_extract(mask, threshold_s = 2000):
 
     return mask
 
-def extractMask(video_id):
-    video_path = Config.dataset_path
-    data_path = Config.data_path
-    for vid in range(video_id, video_id + 1):
-    #[6,11,12,17,20,22,24,26,27,28,32,34,35,44,50,51,55,59,64,66,71,77,79,82,85,90,96,97]:
-        capture = cv2.VideoCapture(video_path + '/%d.mp4' %vid)
-        scenes = json.load(open(data_path + '/unchanged_scene_periods.json'))
+def extractMask(vid: Path) -> None:
+    capture = cv2.VideoCapture(str(vid))
+    scenes = json.load(open(Config.data_path + '/unchanged_scene_periods.json'))
 
-        scenes_id = 0
-        for each in scenes['%d' %vid]:
-            scenes_id += 1
-            print(vid, scenes_id)
-            start = each[0]
-            end = each[1]
-            print(start, end)
-            capture.set(cv2.CAP_PROP_POS_FRAMES, start)
+    scenes_id = 0
+    for each in scenes[vid.stem]:
+        scenes_id += 1
+        print(vid.stem, scenes_id)
+        start = each[0]
+        end = each[1]
+        print(start, end)
+        capture.set(cv2.CAP_PROP_POS_FRAMES, start)
+        success, frame = capture.read()
+
+        temp = np.zeros_like(frame)
+
+        capture.set(cv2.CAP_PROP_POS_FRAMES, (start + end) // 2)
+        _, mid_frame = capture.read()
+
+        frame_id = start + 30
+        while frame_id < end:
+            prev = frame
+
+            capture.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
             success, frame = capture.read()
+            frame_id += 30
 
-            temp = np.zeros_like(frame)
+            if success:
+                sub = sc.expit(np.abs(frame - prev) - 125)
+                temp = temp + sub
+            else:
+                break
+        temp = np.sum(temp, 2)
+        mask = (temp > 0.2).astype(np.uint8)
 
-            capture.set(cv2.CAP_PROP_POS_FRAMES, (start + end) // 2)
-            _, mid_frame = capture.read()
+        np.save('masks_refine_non_expand/mask_{0}_{1}.npy'.format(vid.stem, scenes_id), mask)
 
-            frame_id = start + 30
-            while frame_id < end:
-                prev = frame
+        for count in range(2):
+            mask2 = np.zeros_like(mask)
+            for i in range(1, mask.shape[0] - 1):
+                for j in range(1, mask.shape[1] - 1):
+                    mask2[i,j] = max([mask[i-1,j], mask[i,j], mask[i+1,j],
+                            mask[i-1,j-1], mask[i,j-1], mask[i+1,j-1],
+                            mask[i-1,j+1], mask[i,j+1], mask[i+1,j+1]])
+            mask = mask2
 
-                capture.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
-                success, frame = capture.read()
-                frame_id += 30
+        mask = region_extract(mask.copy(), threshold_s=2000)
 
-                if success:
-                    sub = sc.expit(np.abs(frame - prev) - 125)
-                    temp = temp + sub
-                else:
-                    break
-            temp = np.sum(temp, 2)
-            mask = (temp > 0.2).astype(np.uint8)
+        for count in range(15):
+            mask2 = np.zeros_like(mask)
+            for i in range(1, mask.shape[0] - 1):
+                for j in range(1, mask.shape[1] - 1):
+                    mask2[i,j] = max([mask[i-1,j], mask[i,j], mask[i+1,j],
+                            mask[i-1,j-1], mask[i,j-1], mask[i+1,j-1],
+                            mask[i-1,j+1], mask[i,j+1], mask[i+1,j+1]])
+            mask = mask2
 
-            np.save('masks_refine_non_expand/mask_%d_%d.npy' %(vid, scenes_id), mask)
-
-            for count in range(2):
-                mask2 = np.zeros_like(mask)
-                for i in range(1, mask.shape[0] - 1):
-                    for j in range(1, mask.shape[1] - 1):
-                        mask2[i,j] = max([mask[i-1,j], mask[i,j], mask[i+1,j],
-                              mask[i-1,j-1], mask[i,j-1], mask[i+1,j-1],
-                              mask[i-1,j+1], mask[i,j+1], mask[i+1,j+1]])
-                mask = mask2
-
-            mask = region_extract(mask.copy(), threshold_s=2000)
-
-            for count in range(15):
-                mask2 = np.zeros_like(mask)
-                for i in range(1, mask.shape[0] - 1):
-                    for j in range(1, mask.shape[1] - 1):
-                        mask2[i,j] = max([mask[i-1,j], mask[i,j], mask[i+1,j],
-                              mask[i-1,j-1], mask[i,j-1], mask[i+1,j-1],
-                              mask[i-1,j+1], mask[i,j+1], mask[i+1,j+1]])
-                mask = mask2
-
-            mask = cv2.blur(mask, (5,5))
-            np.save('masks_refine_v3/mask_%d_%d.npy' %(vid, scenes_id), mask)
-            imageio.imwrite('masks/%d_%d.jpg' %(vid, scenes_id), mask.reshape(410,800,1).astype(np.uint8) * mid_frame)
+        mask = cv2.blur(mask, (5,5))
+        np.save('masks_refine_v3/mask_{0}_{1}.npy'.format(vid.stem, scenes_id), mask)
+        imageio.imwrite('masks/{0}_%{1}.jpg'.format(vid.stem, scenes_id),
+                        mask.reshape(410,800,1).astype(np.uint8) * mid_frame)
 
 def verifyMask(video_id, scene_id, expand):
     if not expand:
@@ -150,7 +149,16 @@ def expandMask(video_id, scene_id):
 
     np.save(mask_path, mask)
 
+
 if __name__== '__main__':
 
-    #visualize extracted masks
-    verifyMask(video_id=51, scene_id=1, expand=True)
+    # Extract the mask
+    # [6,11,12,17,20,22,24,26,27,28,32,34,35,44,50,51,55,59,64,66,71,77,79,82,85,90,96,97]:
+    videos = Path(Config.dataset_path).glob('*.mp4')
+    videos = sorted(list(videos), key=natural_keys)
+    for vid in videos:
+        extractMask(vid)
+        # Optional
+        # Expand the mask
+        #visualize extracted masks
+        verifyMask(video_id=51, scene_id=1, expand=True)
