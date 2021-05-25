@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 import cv2
 import matplotlib.pyplot as plt
@@ -10,6 +10,7 @@ from Detectors import DetectorDay, DetectorNight, DayNightDetector
 from MaskList import MaskList
 from Misc import Image
 from StableFrameList import StableFrameList
+from vid_utils import natural_keys
 
 #Initialize detector
 print('Parse detector result ...')
@@ -20,9 +21,12 @@ anomalyDetector = AnomalyDetector()
 stableList = StableFrameList(Config.data_path + '/unchanged_scene_periods.json')
 maskList = MaskList(Config.data_path + '/masks_refine_v3')
 
-# TODO: change for a generic version of videos.
-for video_id in range(1, 101):
-    print("Processing video ", video_id)
+videos_path = Path(Config.dataset_path).glob('*.mp4')
+videos_path = sorted(list(videos_path), key=natural_keys)
+output_dir = Path(Config.output_path)
+for video in videos_path:
+    video_id = int(str(video))
+    print("Processing video ", video.stem)
     detector = detectorDay
     if dayNightDetector.checkNight(video_id):
         detector = detectorNight
@@ -33,18 +37,17 @@ for video_id in range(1, 101):
     print(detector.name)
 
     #anomaly save file
-    if not os.path.exists(Config.output_path + '/' + str(video_id)):
-        os.makedirs(Config.output_path + '/' + str(video_id))
-    f = open(Config.output_path + '/' + str(video_id) + '/anomaly_events.txt', 'w')
+    video_folder = output_dir / video.stem
+    video_folder.mkdir(exist_ok=True, parents=True)
+    f = open(video_folder / 'anomaly_events.txt', 'w')
 
     #output video of the detected anomaly events
-    video_input = ''.join([Config.dataset_path, '/', str(video_id), '.mp4'])
-    video_input = cv2.VideoCapture(video_input)
+    video_input = cv2.VideoCapture(str(video))
     width = int(video_input.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(video_input.get(cv2.CAP_PROP_FRAME_HEIGHT))
     video_input.release()
-    video_output_path = ''.join([Config.output_path + '/' + str(video_id) + '/' + 'anomaly_events.avi'])
-    video_output = cv2.VideoWriter(video_output_path, cv2.VideoWriter_fourcc(*'XVID'), Config.fps, (width, height))
+    video_output_path = video_folder / 'anomaly_event.avi'
+    video_output = cv2.VideoWriter(str(video_output_path), cv2.VideoWriter_fourcc(*'XVID'), Config.fps, (width, height))
 
     #loop all stable intervals
     for scene_id in range(1, len(stableIntervals) + 1):
@@ -54,8 +57,8 @@ for video_id in range(1, 101):
         sceneMask = maskList[(video_id, scene_id)]
 
         #create output folder
-        if not os.path.exists(Config.output_path + '/' + str(video_id) + '/' + str(scene_id)):
-            os.makedirs(Config.output_path + '/' + str(video_id) + '/' + str(scene_id))
+        scene_folder = video_folder / str(scene_id)
+        scene_folder.mkdir(exist_ok=True, parents=True)
 
         # output folder: output / video_id / scene_id / stuffs
         # output: average + boxes, gray_boxes before, gray_boxes after mask
@@ -63,15 +66,16 @@ for video_id in range(1, 101):
         for frame_id in range(sl, sr):
             ave_im = Image.load(Config.avg_im_path + '/' + str(video_id) + '/average' + str(frame_id) + '.jpg')
             boxes = detector.detect(video_id, frame_id)
-            for box in boxes: box.applyMask(sceneMask)
+            for box in boxes:
+                box.applyMask(sceneMask)
 
             box_im = Image.addBoxes(ave_im, boxes)
 
             if detector.name == 'night':
-                Image.save(box_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/night_average' + format(frame_id, '03d') + '.jpg')
+                Image.save(box_im, str(scene_folder/('night_average' + format(frame_id, '03d') + '.jpg')))
 
             else:
-                Image.save(box_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/day_average' + format(frame_id, '03d') + '.jpg')
+                Image.save(box_im, str(scene_folder/('day_average' + format(frame_id, '03d') + '.jpg')))
 
             #detect anomaly event in scene
             anomalyDetector.addBoxes(boxes, frame_id) #input detected boxes => list of anomaly event
@@ -79,7 +83,7 @@ for video_id in range(1, 101):
 
             event_im = anomalyDetector.drawEvents(box_im)
 
-            Image.save(event_im, Config.output_path + '/' + str(video_id) + '/' + str(scene_id) + '/events' + format(frame_id, '03d') + '.jpg')
+            Image.save(event_im, scene_folder/('events' + format(frame_id, '03d') + '.jpg'))
             confs[frame_id] = conf
 
             video_output.write(event_im)
@@ -98,9 +102,9 @@ for video_id in range(1, 101):
     ax.set_ylabel('Confidence')
     ax.set_ylim(bottom=0)
     ax.yaxis.set_major_formatter(mtick.PercentFormatter(1))
-    f.savefig(Config.output_path + '/' + str(video_id) + '/' + str(video_id) + '_anomaly.pdf', bbox_inches='tight')
+    f.savefig(video_folder/(str(video_id) + '_anomaly.pdf'), bbox_inches='tight')
     plt.close(f)
-    f = open(Config.output_path + '/' + str(video_id) + '/' + str(video_id) + '_anomaly.txt', 'w')
+    f = open(video_folder/(str(video_id) + '_anomaly.txt'), 'w')
     for frame_id, conf in confs.items():
         f.write(str(frame_id) + ' ' + str(conf) + '\n')
     f.close()
