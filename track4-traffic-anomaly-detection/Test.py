@@ -83,7 +83,7 @@ for video in videos_path:
 
             event_im = anomalyDetector.drawEvents(box_im)
 
-            Image.save(event_im, scene_folder/('events' + format(frame_id, '03d') + '.jpg'))
+            Image.save(event_im, str(scene_folder/('events' + format(frame_id, '03d') + '.jpg')))
             confs[frame_id] = conf
 
             video_output.write(event_im)
