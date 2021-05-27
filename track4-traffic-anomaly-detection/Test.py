@@ -25,7 +25,7 @@ videos_path = Path(Config.dataset_path).glob('*.mp4')
 videos_path = sorted(list(videos_path), key=natural_keys)
 output_dir = Path(Config.output_path)
 for video in videos_path:
-    video_id = int(str(video))
+    video_id = int(str(video.stem))
     print("Processing video ", video.stem)
     detector = detectorDay
     if dayNightDetector.checkNight(video_id):
